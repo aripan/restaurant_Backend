@@ -10,6 +10,32 @@ let dishRouter = require("./routes/dishRouter");
 let leaderRouter = require("./routes/leaderRouter");
 let promoRouter = require("./routes/promoRouter");
 
+// Importing mongoose
+const mongoose = require("mongoose");
+
+// Importing Dishes from model
+const Dishes = require("./models/dishes");
+
+// Connecting MongoDB
+const url =
+  "mongodb+srv://Asad123:Asad123@rescluster.kfqqb.mongodb.net/test?retryWrites=true&w=majority";
+
+const connect = mongoose.connect(url, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+});
+
+// Error Handling for the DB
+connect.then(
+  () => {
+    console.log("Connected correctly to server");
+  },
+  (err) => {
+    console.log(err);
+  }
+);
+
 let app = express();
 
 // view engine setup
