@@ -13,8 +13,10 @@ let promoRouter = require("./routes/promoRouter");
 // Importing mongoose
 const mongoose = require("mongoose");
 
-// Importing Dishes from model
+// Importing model
 const Dishes = require("./models/dishes");
+const Leaders = require("./models/leaders");
+const Promotions = require("./models/promotions");
 
 // Connecting MongoDB
 const url =
@@ -46,6 +48,45 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+//! NEED TO USE AUTHENTICATION HERE
+
+function auth(req, res, next) {
+  console.log(req.headers);
+
+  let authHeader = req.headers.authorization;
+
+  // Checking the authorization of the user
+  if (!authHeader) {
+    let err = new Error("Sorry, but you are not authenticated!");
+
+    res.setHeader("WWW-Authenticate", "Basic");
+    err.status = 401;
+    return next(err);
+  } else {
+    // authHeader exists, so now we will split it
+    let auth = new Buffer.from(authHeader.split(" ")[1], "base64")
+      .toString()
+      .split(":");
+
+    // Assigning the username and password
+    let username = auth[0];
+    let password = auth[1];
+
+    // Checking the username & password
+    if (username == "admin" && password == "password") {
+      next();
+    } else {
+      let err = new Error("Sorry, but you are not authenticated!");
+
+      res.setHeader("WWW-Authenticate", "Basic");
+      err.status = 401;
+      return next(err);
+    }
+  }
+}
+app.use(auth);
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
