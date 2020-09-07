@@ -62,62 +62,32 @@ app.use(
   })
 );
 
-//! NEED TO USE AUTHENTICATION HERE
+app.use("/", indexRouter);
+app.use("/users", usersRouter);
 
-function auth(req, res, next) {
+//! NEED TO USE AUTHENTICATION HERE
+auth = (req, res, next) => {
   console.log(req.session);
 
   if (!req.session.user) {
-    let authHeader = req.headers.authorization;
-
-    // Checking the authorization of the user
-    if (!authHeader) {
-      let err = new Error("Sorry, but you are not authenticated!");
-
-      res.setHeader("WWW-Authenticate", "Basic");
-      err.status = 401;
-      return next(err);
-    } else {
-      // authHeader exists, so now we will split it
-      let auth = new Buffer.from(authHeader.split(" ")[1], "base64")
-        .toString()
-        .split(":");
-
-      // Assigning the username and password
-      let username = auth[0];
-      let password = auth[1];
-
-      // Checking the username & password
-      if (username == "admin" && password == "password") {
-        // Setting up the session
-        req.session.user = "admin";
-
-        // Moving forward
-        next();
-      } else {
-        let err = new Error("Sorry, but you are not authenticated!");
-
-        res.setHeader("WWW-Authenticate", "Basic");
-        err.status = 401;
-        return next(err);
-      }
-    }
+    let err = new Error("You are not authenticated!");
+    err.status = 403;
+    return next(err);
   } else {
-    if (req.session.user == "admin") {
+    if (req.session.user === "authenticated") {
       next();
     } else {
-      let err = new Error("Sorry, but you are not authenticated!");
-      err.status = 401;
+      let err = new Error("You are not authenticated!");
+      err.status = 403;
       return next(err);
     }
   }
-}
+};
+
 app.use(auth);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
 app.use("/dishes", dishRouter);
 app.use("/promotions", promoRouter);
 app.use("/leaders", leaderRouter);
