@@ -3,6 +3,8 @@ let express = require("express");
 let path = require("path");
 let cookieParser = require("cookie-parser");
 let logger = require("morgan");
+let session = require("express-session");
+let FileStore = require("session-file-store")(session);
 
 let indexRouter = require("./routes/index");
 let usersRouter = require("./routes/users");
@@ -47,14 +49,25 @@ app.set("view engine", "jade");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser("12345-67890-09876-54321"));
+// app.use(cookieParser("12345-67890-09876-54321"));
+
+// Using session instead of cookies
+app.use(
+  session({
+    name: "session-id",
+    secret: "12345-67890-09876-54321",
+    saveUninitialized: false,
+    resave: false,
+    store: new FileStore(),
+  })
+);
 
 //! NEED TO USE AUTHENTICATION HERE
 
 function auth(req, res, next) {
-  console.log(req.signedCookies);
+  console.log(req.session);
 
-  if (!req.signedCookies.user) {
+  if (!req.session.user) {
     let authHeader = req.headers.authorization;
 
     // Checking the authorization of the user
@@ -76,8 +89,8 @@ function auth(req, res, next) {
 
       // Checking the username & password
       if (username == "admin" && password == "password") {
-        // Setting up the cookie
-        res.cookie("user", "admin", { signed: true });
+        // Setting up the session
+        req.session.user = "admin";
 
         // Moving forward
         next();
@@ -90,7 +103,7 @@ function auth(req, res, next) {
       }
     }
   } else {
-    if (req.signedCookies.user == "admin") {
+    if (req.session.user == "admin") {
       next();
     } else {
       let err = new Error("Sorry, but you are not authenticated!");
