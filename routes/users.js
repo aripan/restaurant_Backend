@@ -8,8 +8,17 @@ const authenticate = require("../authenticate");
 router.use(express.json());
 
 /* GET users listing. */
-router.get("/", (req, res, next) => {
-  res.send("respond with a resource");
+router.get("/", authenticate.verifyAdmin, (req, res, next) => {
+  User.find({ users: req.body.users })
+    .then(
+      (users) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(users);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
 });
 
 //! SIGNUP

@@ -27,7 +27,7 @@ dishRouter
         next(err);
       });
   })
-  .post(authenticate.verifyUser, (req, res, next) => {
+  .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.create(req.body)
       .then(
         (dish) => {
@@ -42,23 +42,27 @@ dishRouter
         next(err);
       });
   })
-  .put(authenticate.verifyUser, (req, res, next) => {
+  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.status(403).send("PUT operation is not supported on /dishes");
   })
-  .delete(authenticate.verifyUser, (req, res, next) => {
-    Dishes.remove({})
-      .then(
-        (resp) => {
-          res.status(200).json(resp);
-        },
-        (err) => {
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Dishes.remove({})
+        .then(
+          (resp) => {
+            res.status(200).json(resp);
+          },
+          (err) => {
+            next(err);
+          }
+        )
+        .catch((err) => {
           next(err);
-        }
-      )
-      .catch((err) => {
-        next(err);
-      });
-  });
+        });
+    }
+  );
 
 // With Id number
 dishRouter
@@ -78,12 +82,12 @@ dishRouter
         next(err);
       });
   })
-  .post(authenticate.verifyUser, (req, res, next) => {
+  .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res
       .status(403)
       .send("POST operation is not supported on /dishes/" + req.params.dishId);
   })
-  .put(authenticate.verifyUser, (req, res, next) => {
+  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findByIdAndUpdate(
       req.params.dishId,
       {
@@ -103,20 +107,24 @@ dishRouter
         next(err);
       });
   })
-  .delete(authenticate.verifyUser, (req, res, next) => {
-    Dishes.findByIdAndRemove(req.params.dishId)
-      .then(
-        (resp) => {
-          res.status(200).json(resp);
-        },
-        (err) => {
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Dishes.findByIdAndRemove(req.params.dishId)
+        .then(
+          (resp) => {
+            res.status(200).json(resp);
+          },
+          (err) => {
+            next(err);
+          }
+        )
+        .catch((err) => {
           next(err);
-        }
-      )
-      .catch((err) => {
-        next(err);
-      });
-  });
+        });
+    }
+  );
 
 // For COMMENTS
 dishRouter
@@ -181,38 +189,42 @@ dishRouter
         `PUT operation is not supported on /dishes/ ${req.params.dishId} /comments`
       );
   })
-  .delete(authenticate.verifyUser, (req, res, next) => {
-    Dishes.findById(req.params.dishId)
-      .then(
-        (dish) => {
-          if (dish != null) {
-            for (let i = dish.comments.length - 1; i >= 0; i--) {
-              dish.comments.id(dish.comments[i]._id).remove();
-            }
-
-            // Saving the dish after deleting all the comments
-            dish.save().then(
-              (dish) => {
-                res.status(200).json(dish);
-              },
-              (err) => {
-                next(err);
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Dishes.findById(req.params.dishId)
+        .then(
+          (dish) => {
+            if (dish != null) {
+              for (let i = dish.comments.length - 1; i >= 0; i--) {
+                dish.comments.id(dish.comments[i]._id).remove();
               }
-            );
-          } else {
-            err = new Error(`Dish ${req.params.dishId} not found`);
-            err.status(404);
-            return next(err);
+
+              // Saving the dish after deleting all the comments
+              dish.save().then(
+                (dish) => {
+                  res.status(200).json(dish);
+                },
+                (err) => {
+                  next(err);
+                }
+              );
+            } else {
+              err = new Error(`Dish ${req.params.dishId} not found`);
+              err.status(404);
+              return next(err);
+            }
+          },
+          (err) => {
+            next(err);
           }
-        },
-        (err) => {
+        )
+        .catch((err) => {
           next(err);
-        }
-      )
-      .catch((err) => {
-        next(err);
-      });
-  });
+        });
+    }
+  );
 
 // comments with Id number
 dishRouter
@@ -253,30 +265,44 @@ dishRouter
     Dishes.findByIdAndUpdate(req.params.dishId)
       .then(
         (dish) => {
-          if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            //! Allow only the modification of rating and comment
-            if (req.body.rating) {
-              dish.comments.id(req.params.commentId).rating = req.body.rating;
-            }
-
-            if (req.body.comment) {
-              dish.comments.id(req.params.commentId).comment = req.body.comment;
-            }
-            dish.save().then((dish) => {
-              Dishes.findById(dish._id)
-                .populate("comments.author")
-                .then((dish) => {
-                  res.status(200).json(dish);
-                });
-            });
-          } else if (dish == null) {
-            err = new Error(`Dish ${req.params.dishId} not found`);
-            err.status(404);
+          // checking the author who posted the comment
+          if (
+            dish.comments.id(req.params.commentId).author.toString() !=
+            req.user._id.toString()
+          ) {
+            err = new Error("You are not authorized to edit this comment");
+            err.status = 403;
             return next(err);
           } else {
-            err = new Error(`Comment ${req.params.commentId} not found`);
-            err.status(404);
-            return next(err);
+            if (
+              dish != null &&
+              dish.comments.id(req.params.commentId) != null
+            ) {
+              //! Allow only the modification of rating and comment
+              if (req.body.rating) {
+                dish.comments.id(req.params.commentId).rating = req.body.rating;
+              }
+
+              if (req.body.comment) {
+                dish.comments.id(req.params.commentId).comment =
+                  req.body.comment;
+              }
+              dish.save().then((dish) => {
+                Dishes.findById(dish._id)
+                  .populate("comments.author")
+                  .then((dish) => {
+                    res.status(200).json(dish);
+                  });
+              });
+            } else if (dish == null) {
+              err = new Error(`Dish ${req.params.dishId} not found`);
+              err.status(404);
+              return next(err);
+            } else {
+              err = new Error(`Comment ${req.params.commentId} not found`);
+              err.status(404);
+              return next(err);
+            }
           }
         },
         (err) => {
@@ -291,30 +317,43 @@ dishRouter
     Dishes.findById(req.params.dishId)
       .then(
         (dish) => {
-          if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            dish.comments.id(req.params.commentId).remove();
-
-            // Saving the dish after deleting all the comments
-            dish.save().then(
-              (dish) => {
-                Dishes.findById(dish._id)
-                  .populate("comments.author")
-                  .then((dish) => {
-                    res.status(200).json(dish);
-                  });
-              },
-              (err) => {
-                next(err);
-              }
-            );
-          } else if (dish == null) {
-            err = new Error(`Dish ${req.params.dishId} not found`);
-            err.status = 404;
+          // checking the author who posted the comment
+          if (
+            dish.comments.id(req.params.commentId).author.toString() !=
+            req.user._id.toString()
+          ) {
+            err = new Error("You are not authorized to edit this comment");
+            err.status = 403;
             return next(err);
           } else {
-            err = new Error(`Comment ${req.params.commentId} not found`);
-            err.status(404);
-            return next(err);
+            if (
+              dish != null &&
+              dish.comments.id(req.params.commentId) != null
+            ) {
+              dish.comments.id(req.params.commentId).remove();
+
+              // Saving the dish after deleting all the comments
+              dish.save().then(
+                (dish) => {
+                  Dishes.findById(dish._id)
+                    .populate("comments.author")
+                    .then((dish) => {
+                      res.status(200).json(dish);
+                    });
+                },
+                (err) => {
+                  next(err);
+                }
+              );
+            } else if (dish == null) {
+              err = new Error(`Dish ${req.params.dishId} not found`);
+              err.status = 404;
+              return next(err);
+            } else {
+              err = new Error(`Comment ${req.params.commentId} not found`);
+              err.status(404);
+              return next(err);
+            }
           }
         },
         (err) => {
