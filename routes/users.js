@@ -23,10 +23,29 @@ router.post("/signup", (req, res, next) => {
         res.setHeader("Content-Type", "application/json");
         res.json({ err: err });
       } else {
-        passport.authenticate("local")(req, res, () => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json({ success: true, status: "Registration Successful!" });
+        // Here i am checking that, if firstname exists,
+        // then setting the user's firstname as req.body.firstname
+        if (req.body.firstName) {
+          user.firstName = req.body.firstName;
+        }
+
+        // Here i am checking that, if lastname exists,
+        // then setting the user's lastname as req.body.lastname
+        if (req.body.lastName) {
+          user.lastName = req.body.lastName;
+        }
+
+        user.save((err, user) => {
+          if (err) {
+            res.status(500).json({ err: err });
+            return;
+          } else {
+            passport.authenticate("local")(req, res, () => {
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "application/json");
+              res.json({ success: true, status: "Registration Successful!" });
+            });
+          }
         });
       }
     }
