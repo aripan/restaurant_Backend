@@ -7,6 +7,7 @@ const whitelist = [
   "https://localhost:5443",
   "http://localhost:3000",
 ];
+
 let corsOptionsDelegate = (req, callback) => {
   let corsOptions;
   console.log(req.header("Origin"));
