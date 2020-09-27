@@ -56,9 +56,16 @@ router.post("/signup", cors.corsWithOptions, (req, res, next) => {
             return;
           } else {
             passport.authenticate("local")(req, res, () => {
+              // THIS ONE IS NEEDED FOR SOMEONE WHO HAS JUST REGISTERED.
+              // I DON'T WANT TO TELL THEM THAT YOU HAVE TO LOGIN AGAIN TO GET THE ACCESS
+              let token = authenticate.getToken({ _id: req.user._id });
               res.statusCode = 200;
               res.setHeader("Content-Type", "application/json");
-              res.json({ success: true, status: "Registration Successful!" });
+              res.json({
+                success: true,
+                status: "Registration Successful!",
+                token: token,
+              });
             });
           }
         });
