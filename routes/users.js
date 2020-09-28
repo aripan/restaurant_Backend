@@ -155,4 +155,14 @@ router.get("/checkJWTtoken", cors.corsWithOptions, (req, res) => {
   })(req, res);
 });
 
+//! FEEDBACK
+router.post("/feedback", cors.corsWithOptions, (req, res, next) => {
+  if (req.body.firstName && req.body.lastName && req.body.message) {
+    res.status(200).json(req.body);
+  } else {
+    let err = new Error("You are not Authorized");
+    err.status = 403;
+    return next(err);
+  }
+});
 module.exports = router;
