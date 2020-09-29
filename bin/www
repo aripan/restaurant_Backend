@@ -8,7 +8,7 @@ let app = require("../app");
 let debug = require("debug")("treaturhungerserver:server");
 let http = require("http");
 // HTTPS core modules in Node
-let https = require("https");
+// let https = require("https");
 let fs = require("fs");
 
 process
@@ -24,7 +24,7 @@ let port = normalizePort(process.env.PORT || "5000");
 
 app.set("port", port);
 // Secure port
-app.set("secPort", port + 443);
+// app.set("secPort", port + 443);
 
 /**
  * Create HTTP server.
@@ -44,26 +44,26 @@ server.on("listening", onListening);
  * Create HTTPS server.
  */
 
-let options = {
-  key: fs.readFileSync(__dirname + "/private.key"),
-  cert: fs.readFileSync(__dirname + "/certificate.pem"),
-};
+// let options = {
+//   key: fs.readFileSync(__dirname + "/private.key"),
+//   cert: fs.readFileSync(__dirname + "/certificate.pem"),
+// };
 
-let secureServer = https.createServer(options, app);
+// let secureServer = https.createServer(options, app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-secureServer.listen(app.get("secPort"), () => {
-  console.log("Server listening on port ", app.get("secPort"));
-});
+// secureServer.listen(app.get("secPort"), () => {
+//   console.log("Server listening on port ", app.get("secPort"));
+// });
 
 // secureServer.listen(process.env.PORT || 5443, () => {
 //   console.log(`Server listening on port ${process.env.PORT || 5443}`);
 // });
-secureServer.on("error", onError);
-secureServer.on("listening", onListening);
+// secureServer.on("error", onError);
+// secureServer.on("listening", onListening);
 
 /**
  * Normalize a port into a number, string, or false.
