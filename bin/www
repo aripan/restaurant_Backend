@@ -11,16 +11,17 @@ let http = require("http");
 let https = require("https");
 let fs = require("fs");
 
-process
-  .on("SIGTERM", shutdown("SIGTERM"))
-  .on("SIGINT", shutdown("SIGINT"))
-  .on("uncaughtException", shutdown("uncaughtException"));
+// process
+//   .on("SIGTERM", shutdown("SIGTERM"))
+//   .on("SIGINT", shutdown("SIGINT"))
+//   .on("uncaughtException", shutdown("uncaughtException"));
 
 /**
  * Get port from environment and store in Express.
  */
 
-let port = normalizePort(process.env.PORT || "5000");
+// let port = normalizePort(process.env.PORT || "5000");
+const port = process.env.PORT || 5000;
 app.set("port", port);
 // Secure port
 app.set("secPort", port + 443);
@@ -34,7 +35,7 @@ let server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-setInterval(console.log.bind(console, "tick"), 1000);
+
 server.listen(port);
 server.on("error", onError);
 server.on("listening", onListening);
@@ -53,11 +54,14 @@ let secureServer = https.createServer(options, app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-setInterval(console.log.bind(console, "tick"), 1000);
+
 secureServer.listen(app.get("secPort"), () => {
   console.log("Server listening on port ", app.get("secPort"));
 });
 
+// secureServer.listen(process.env.PORT || 5443, () => {
+//   console.log(`Server listening on port ${process.env.PORT || 5443}`);
+// });
 secureServer.on("error", onError);
 secureServer.on("listening", onListening);
 
@@ -65,32 +69,32 @@ secureServer.on("listening", onListening);
  * Normalize a port into a number, string, or false.
  */
 
-function shutdown(signal) {
-  return (err) => {
-    console.log(`${signal}...`);
-    if (err) console.error(err.stack || err);
-    setTimeout(() => {
-      console.log("...waited 5s, exiting.");
-      process.exit(err ? 1 : 0);
-    }, 5000).unref();
-  };
-}
+// function shutdown(signal) {
+//   return (err) => {
+//     console.log(`${signal}...`);
+//     if (err) console.error(err.stack || err);
+//     setTimeout(() => {
+//       console.log("...waited 5s, exiting.");
+//       process.exit(err ? 1 : 0);
+//     }, 5000).unref();
+//   };
+// }
 
-function normalizePort(val) {
-  let port = parseInt(val, 10);
+// function normalizePort(val) {
+//   let port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+//   if (isNaN(port)) {
+//     // named pipe
+//     return val;
+//   }
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+//   if (port >= 0) {
+//     // port number
+//     return port;
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 /**
  * Event listener for HTTP server "error" event.
@@ -101,7 +105,8 @@ function onError(error) {
     throw error;
   }
 
-  let bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+  // let bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+  let bind = "Port" + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
@@ -124,6 +129,7 @@ function onError(error) {
 
 function onListening() {
   let addr = server.address();
-  let bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  // let bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  let bind = "port " + addr.port;
   debug("Listening on " + bind);
 }
