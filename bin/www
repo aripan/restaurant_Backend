@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+//! I have omitted all the parts related to secure port to deploy it to Heroku
 /**
  * Module dependencies.
  */
@@ -11,6 +12,7 @@ let http = require("http");
 // let https = require("https");
 let fs = require("fs");
 
+//! SIGTERM
 process
   .on("SIGTERM", shutdown("SIGTERM"))
   .on("SIGINT", shutdown("SIGINT"))
@@ -65,10 +67,7 @@ server.on("listening", onListening);
 // secureServer.on("error", onError);
 // secureServer.on("listening", onListening);
 
-/**
- * Normalize a port into a number, string, or false.
- */
-
+//! SIGTERM
 function shutdown(signal) {
   return (err) => {
     console.log(`${signal}...`);
@@ -80,6 +79,9 @@ function shutdown(signal) {
   };
 }
 
+/**
+ * Normalize a port into a number, string, or false.
+ */
 function normalizePort(val) {
   let port = parseInt(val, 10);
 
