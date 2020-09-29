@@ -1,5 +1,5 @@
 module.exports = {
-  secretKey: process.env.SECRET_KEY,
+  secretKey: "12345-67890-09876-54321",
   mongoUrl: process.env.MONGO_URL,
   facebook: {
     clientId: process.env.CLIENT_ID,
