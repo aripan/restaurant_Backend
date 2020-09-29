@@ -11,10 +11,10 @@ let http = require("http");
 let https = require("https");
 let fs = require("fs");
 
-// process
-//   .on("SIGTERM", shutdown("SIGTERM"))
-//   .on("SIGINT", shutdown("SIGINT"))
-//   .on("uncaughtException", shutdown("uncaughtException"));
+process
+  .on("SIGTERM", shutdown("SIGTERM"))
+  .on("SIGINT", shutdown("SIGINT"))
+  .on("uncaughtException", shutdown("uncaughtException"));
 
 /**
  * Get port from environment and store in Express.
@@ -69,16 +69,16 @@ secureServer.on("listening", onListening);
  * Normalize a port into a number, string, or false.
  */
 
-// function shutdown(signal) {
-//   return (err) => {
-//     console.log(`${signal}...`);
-//     if (err) console.error(err.stack || err);
-//     setTimeout(() => {
-//       console.log("...waited 5s, exiting.");
-//       process.exit(err ? 1 : 0);
-//     }, 5000).unref();
-//   };
-// }
+function shutdown(signal) {
+  return (err) => {
+    console.log(`${signal}...`);
+    if (err) console.error(err.stack || err);
+    setTimeout(() => {
+      console.log("...waited 5s, exiting.");
+      process.exit(err ? 1 : 0);
+    }, 5000).unref();
+  };
+}
 
 function normalizePort(val) {
   let port = parseInt(val, 10);
