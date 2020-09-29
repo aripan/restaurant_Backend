@@ -76,7 +76,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(passport.initialize());
 
-app.use("/", indexRouter);
+// app.use("/", indexRouter);
 app.use("/users", usersRouter);
 
 app.use(express.static(path.join(__dirname, "public")));
